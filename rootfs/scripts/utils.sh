@@ -103,7 +103,7 @@ dequeue() {
 		__message="[$__ticket_id] Dequeue"
 	fi
 
-	if [ $(awk "/$__ticket_id/" $__queue_file | wc -l) == "0" ]; then
+	if [ ! grep -qx "$__ticket_id" "$__queue_file" ]; then
 		1>&2 echo "[$__ticket_id] Not in queue! Mutex file:"
 		cat $__queue_file
 		exit 1
