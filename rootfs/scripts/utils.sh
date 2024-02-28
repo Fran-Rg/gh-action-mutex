@@ -73,11 +73,15 @@ wait_for_lock() {
 	update_branch $__branch
 
 	# if we are not the first in line, spin
-	cur_lock=$(head -n 1 $__queue_file)
-	if [ -s $__queue_file ] && [ "$cur_lock" != "$__ticket_id" ]; then
-		echo "[$__ticket_id] Waiting for lock - Current lock assigned to [$cur_lock]"
-		sleep 5
-		wait_for_lock $@
+	if [ -s $__queue_file ]; then
+		cur_lock=$(head -n 1 $__queue_file)
+		if [ "$cur_lock" != "$__ticket_id" ]; then
+			echo "[$__ticket_id] Waiting for lock - Current lock assigned to [$cur_lock]"
+			sleep 5
+			wait_for_lock $@
+		fi
+	else
+		echo "[$__ticket_id] $__queue_file unexpectedly empty, continuing"
 	fi
 }
 # Remove from the queue, when locked by it or just enqueued
