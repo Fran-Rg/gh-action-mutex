@@ -70,12 +70,12 @@ wait_for_lock() {
 	__queue_file=$2
 	__ticket_id=$3
 
-	echo "[$__ticket_id] Waiting for lock"
-
 	update_branch $__branch
 
 	# if we are not the first in line, spin
-	if [ -s $__queue_file ] && [ "$(head -n 1 $__queue_file)" != "$__ticket_id" ]; then
+	cur_lock=$(head -n 1 $__queue_file)
+	if [ -s $__queue_file ] && [ "$cur_lock" != "$__ticket_id" ]; then
+		echo "[$__ticket_id] Waiting for lock - Current lock assigned to ${cur_lock}"
 		sleep 5
 		wait_for_lock $@
 	fi
