@@ -75,12 +75,11 @@ wait_for_lock() {
 	update_branch $__branch
 
 	# if we are not the first in line, spin
-	if [ -s $__queue_file && "$(head -n 1 $__queue_file)" != "$__ticket_id" ]; then
+	if [ -s $__queue_file ] && [ "$(head -n 1 $__queue_file)" != "$__ticket_id" ]; then
 		sleep 5
 		wait_for_lock $@
 	fi
 }
-
 # Remove from the queue, when locked by it or just enqueued
 # args:
 #   $1: branch
