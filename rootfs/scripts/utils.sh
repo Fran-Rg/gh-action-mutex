@@ -75,7 +75,7 @@ wait_for_lock() {
 	# if we are not the first in line, spin
 	cur_lock=$(head -n 1 $__queue_file)
 	if [ -s $__queue_file ] && [ "$cur_lock" != "$__ticket_id" ]; then
-		echo "[$__ticket_id] Waiting for lock - Current lock assigned to ${cur_lock}"
+		echo "[$__ticket_id] Waiting for lock - Current lock assigned to [$cur_lock]"
 		sleep 5
 		wait_for_lock $@
 	fi
