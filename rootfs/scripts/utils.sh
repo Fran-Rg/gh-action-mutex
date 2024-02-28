@@ -42,7 +42,7 @@ enqueue() {
 	touch $__queue_file
 
 	# if we are not in the queue, add ourself to the queue
-	if [ -z "$(cat $__queue_file | grep -F $__ticket_id)" ]; then
+	if ! grep -qx "$__ticket_id" "$__queue_file" ; then
 		echo "$__ticket_id" >> "$__queue_file"
 
 		git add $__queue_file
@@ -94,16 +94,16 @@ dequeue() {
 
 	update_branch $__branch
 
-	if [ "$(head -n 1 $__queue_file)" == "$__ticket_id" ]; then
+	if [[ "$(head -n 1 $__queue_file)" == "$__ticket_id" ]]; then
 		echo "[$__ticket_id] Unlocking"
 		__message="[$__ticket_id] Unlock"
 		# Remove top line
-		sed -i '1d' $__queue_file
-	elif [ grep -qx "$__ticket_id" "$__queue_file" ]; then
+		sed -i '1d' "$__queue_file"
+	elif grep -qx "$__ticket_id" "$__queue_file" ; then
 		echo "[$__ticket_id] Dequeueing. We don't have the lock!"
 		__message="[$__ticket_id] Dequeue"
 		# Remove the matching line
-		sed -i "#^$__ticket_id$#d" $__queue_file
+		sed -i "/^${__ticket_id}$/d" $__queue_file
 	else
 		1>&2 echo "[$__ticket_id] Not in queue! Mutex file:"
 		cat $__queue_file
