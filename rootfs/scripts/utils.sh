@@ -75,7 +75,7 @@ wait_for_lock() {
 	update_branch $__branch
 
 	# if we are not the first in line, spin
-	if [ "$(cat $__queue_file | awk NF | head -n 1)" != "$__ticket_id" ]; then
+	if [ -s $__queue_file && "$(head -n 1 $__queue_file)" != "$__ticket_id" ]; then
 		sleep 5
 		wait_for_lock $@
 	fi
@@ -95,22 +95,21 @@ dequeue() {
 
 	update_branch $__branch
 
-	if [ "$(cat $__queue_file | awk NF | head -n 1)" == "$__ticket_id" ]; then
+	if [ "$(head -n 1 $__queue_file)" == "$__ticket_id" ]; then
 		echo "[$__ticket_id] Unlocking"
 		__message="[$__ticket_id] Unlock"
-	else
+		# Remove top line
+		sed -i '1d' $__queue_file
+	elif [ grep -qx "$__ticket_id" "$__queue_file" ]; then
 		echo "[$__ticket_id] Dequeueing. We don't have the lock!"
 		__message="[$__ticket_id] Dequeue"
-	fi
-
-	if [ $(awk "/$__ticket_id/" $__queue_file | wc -l) == "0" ]; then
+		# Remove the matching line
+		sed -i "#^$__ticket_id$#d" $__queue_file
+	else
 		1>&2 echo "[$__ticket_id] Not in queue! Mutex file:"
 		cat $__queue_file
 		exit 1
 	fi
-
-	awk "!/$__ticket_id/" $__queue_file | awk NF > ${__queue_file}.new
-	mv ${__queue_file}.new $__queue_file
 
 	git add $__queue_file
 	git commit -m "$__message" --quiet
